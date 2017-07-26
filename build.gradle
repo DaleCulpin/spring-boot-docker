@@ -3,10 +3,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
+        classpath('org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE')
+        classpath('se.transmode.gradle:gradle-docker:1.2')
     }
 }
 
+group = 'ionised'
+
+apply plugin: 'docker'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -25,10 +29,22 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web")
+    compile('org.springframework.boot:spring-boot-starter-web')
     testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.5'
+}
+
+task buildDocker(type: Docker, dependsOn: build) {
+    push = false // set to true to push image to any configured Docker Hub repository
+    applicationName = jar.baseName
+    dockerfile = file('Dockerfile')
+    doFirst {
+        copy {
+            from jar
+            into "build/docker/target"
+        }
+    }
 }
